@@ -1,10 +1,14 @@
 {
-  "name": "swagger",
+  "name": "swaggertoexpress",
   "version": "1.0.0",
-  "description": "",
+  "description": "To map swagger json file with handlers",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/freeart/swaggertoexpress.git"
   },
   "author": "",
   "license": "ISC",
