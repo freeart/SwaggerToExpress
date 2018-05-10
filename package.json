@@ -1,6 +1,6 @@
 {
   "name": "swaggertoexpress",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "To map swagger json file with handlers",
   "main": "index.js",
   "scripts": {
@@ -19,6 +19,7 @@
     "express-domain-middleware": "^0.1.0",
     "express-jwt": "^5.3.1",
     "extend": "^3.0.1",
+    "jsonschema": "^1.2.4",
     "method-override": "^2.3.10"
   }
 }

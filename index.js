@@ -2,6 +2,7 @@ const express = require('express'),
 	jwt = require('express-jwt'),
 	util = require('util'),
 	extend = require('extend'),
+	Validator = require('jsonschema').Validator,
 	convert = require('./openApi.js');
 
 class Swagger {
