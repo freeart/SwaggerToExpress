@@ -4,7 +4,10 @@ npm install swaggertoexpress
 
 ```javascript
 const swagger = require("swaggertoexpress");
+const express = require('express');
 const apiJSON = require("./swagger.json");
+
+const app = express();
 
 const router = swagger.build(apiJSON, {
 	"/user": {
