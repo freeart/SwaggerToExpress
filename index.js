@@ -1,6 +1,7 @@
 const express = require('express'),
 	jwt = require('express-jwt'),
 	util = require('util'),
+	extend = require('extend'),
 	convert = require('./openApi.js');
 
 class Swagger {
@@ -39,13 +40,19 @@ class Swagger {
 
 				let handler = (req, res) => {
 					let headers = req.headers;
-					let input = req.body;
-					input.__validate = (input) => {
-						return Swagger.validate({
-							body: input,
-							headers: headers
-						}, jsonschema, swaggerJson.definitions);
-					};
+
+					let input = extend({}, req.query || {}, req.body || {}, req.user ? {user: req.user} : {});
+
+					let err = Swagger.validate(req, jsonschema, routeMethod != 'get' && swaggerJson.definitions);
+					if (err) {
+						let container;
+						if (typeof err === 'string' || err instanceof String) {
+							container = err;
+						} else {
+							container = util.inspect(err, {showHidden: false, depth: 5, breakLength: Infinity});
+						}
+						return res.status(500).send({error: container});
+					}
 
 					swaggerJson.paths[routePath][routeMethod].handler(headers, input, (err, result) => {
 						if (err) {
