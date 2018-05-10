@@ -1,5 +1,6 @@
 const express = require('express'),
 	jwt = require('express-jwt'),
+	util = require('util'),
 	convert = require('./openApi.js');
 
 class Swagger {
@@ -46,9 +47,15 @@ class Swagger {
 						}, jsonschema, swaggerJson.definitions);
 					};
 
-					swaggerJson.paths[routePath][routeMethod].handler(headers, input, (error, result) => {
-						if (error) {
-							return res.status(500).send({error});
+					swaggerJson.paths[routePath][routeMethod].handler(headers, input, (err, result) => {
+						if (err) {
+							let container;
+							if (typeof err === 'string' || err instanceof String) {
+								container = err;
+							} else {
+								container = util.inspect(err, {showHidden: false, depth: 5, breakLength: Infinity});
+							}
+							return res.status(500).send({error: container});
 						}
 						res.status(200).send({result});
 					});
@@ -60,6 +67,21 @@ class Swagger {
 					router[routeMethod](swaggerJson.basePath + routePath.split("?")[0], handler);
 				}
 			});
+		});
+
+		router.use((err, req, res, next) => {
+			if (!err) return next();
+			if (err.name === 'UnauthorizedError') {
+				res.status(401).send({error: 'Invalid token'});
+			} else {
+				let container;
+				if (typeof err === 'string' || err instanceof String) {
+					container = err;
+				} else {
+					container = util.inspect(err, {showHidden: false, depth: 5, breakLength: Infinity});
+				}
+				res.status(500).send({error: container});
+			}
 		});
 
 		return router;
