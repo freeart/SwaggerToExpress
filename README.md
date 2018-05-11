@@ -11,13 +11,13 @@ const app = express();
 
 const router = swagger.build(apiJSON, {
 	"/user": {
-		"get": (headers, parameters, cb) => {
-			cb(null, {id: 1})
+		"get": (headers, parameters, res) => {
+			res.status(200).send({id: 1})
 		}
 	},
 	"/login": {
-		"get": (headers, parameters, cb) => {
-			cb(null, {token: 2})
+		"get": (headers, parameters, res) => {
+			res.status(200).send({token: 2})
 		}
 	}
 });

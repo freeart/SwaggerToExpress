@@ -55,18 +55,7 @@ class Swagger {
 						return res.status(500).send({error: container});
 					}
 
-					swaggerJson.paths[routePath][routeMethod].handler(headers, input, (err, result) => {
-						if (err) {
-							let container;
-							if (typeof err === 'string' || err instanceof String) {
-								container = err;
-							} else {
-								container = util.inspect(err, {showHidden: false, depth: 5, breakLength: Infinity});
-							}
-							return res.status(500).send({error: container});
-						}
-						res.status(200).send({result});
-					});
+					swaggerJson.paths[routePath][routeMethod].handler(headers, input, res);
 				}
 
 				if (secureArea) {
