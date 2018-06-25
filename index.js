@@ -42,9 +42,9 @@ class Swagger {
 				let handler = (req, res) => {
 					let headers = req.headers;
 
-					let input = extend({}, req.query || {}, req.body || {}, req.user ? {user: req.user} : {});
+					let input = extend({}, req.query || {}, req.body || {}, req.params || {}, req.user ? {user: req.user} : {});
 
-					let err = Swagger.validate(req, jsonschema, routeMethod != 'get' && swaggerJson.definitions);
+					/*let err = Swagger.validate(req, jsonschema, routeMethod != 'get' && swaggerJson.definitions);
 					if (err) {
 						let container;
 						if (typeof err === 'string' || err instanceof String) {
@@ -53,15 +53,33 @@ class Swagger {
 							container = util.inspect(err, {showHidden: false, depth: 5, breakLength: Infinity});
 						}
 						return res.status(500).send({error: container});
-					}
+					}*/
 
 					swaggerJson.paths[routePath][routeMethod].handler(headers, input, res);
 				}
 
+				let optPath = routePath.split("?")[0];
+				const regex = /[^\/]+/gm;
+				let m;
+
+				while ((m = regex.exec(optPath)) !== null) {
+					// This is necessary to avoid infinite loops with zero-width matches
+					if (m.index === regex.lastIndex) {
+						regex.lastIndex++;
+					}
+
+					// The result can be accessed through the `m`-variable.
+					m.forEach((match, groupIndex) => {
+						if (match[0] == "{" && match[match.length - 1] == "}") {
+							optPath = optPath.replace(match, ":" + match.slice(1, -1))
+						}
+					});
+				}
+
 				if (secureArea) {
-					router[routeMethod](swaggerJson.basePath + routePath.split("?")[0], jwt({secret: process.env.JWT_SECRET}), handler);
+					router[routeMethod](swaggerJson.basePath + optPath, jwt({secret: process.env.JWT_SECRET}), handler);
 				} else {
-					router[routeMethod](swaggerJson.basePath + routePath.split("?")[0], handler);
+					router[routeMethod](swaggerJson.basePath + optPath, handler);
 				}
 			});
 		});
