@@ -40,9 +40,13 @@ class Swagger {
 				const secureArea = jsonschema.properties.headers && jsonschema.properties.headers.properties && jsonschema.properties.headers.properties.Authorization;
 
 				let handler = (req, res) => {
-					let headers = req.headers;
-
-					let input = extend({}, req.query || {}, req.body || {}, req.params || {}, req.user ? {user: req.user} : {});
+					let input = {
+						headers: req.headers,
+						query: req.query,
+						body: req.body,
+						params: req.params,
+						user: req.user
+					};
 
 					/*let err = Swagger.validate(req, jsonschema, routeMethod != 'get' && swaggerJson.definitions);
 					if (err) {
@@ -55,7 +59,7 @@ class Swagger {
 						return res.status(500).send({error: container});
 					}*/
 
-					swaggerJson.paths[routePath][routeMethod].handler(headers, input, res);
+					swaggerJson.paths[routePath][routeMethod].handler(input, res);
 				}
 
 				let optPath = routePath.split("?")[0];
