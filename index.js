@@ -31,7 +31,7 @@ class Swagger {
 			Object.keys(swaggerJson.paths[routePath]).forEach((routeMethod) => {
 				swaggerJson.paths[routePath][routeMethod].handler = apiHandlers[routePath][routeMethod];
 
-				if (["post", "get", "put", "delete"].indexOf(routeMethod) == -1) {
+				if (["post", "get", "put", "delete", "patch"].indexOf(routeMethod) == -1) {
 					throw Error("wrong map config");
 				}
 
