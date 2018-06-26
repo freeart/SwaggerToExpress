@@ -39,7 +39,7 @@ class Swagger {
 
 				const secureArea = jsonschema.properties.headers && jsonschema.properties.headers.properties && jsonschema.properties.headers.properties.Authorization;
 
-				let handler = (req, res) => {
+				let handler = async (req, res) => {
 					let input = {
 						headers: req.headers,
 						query: req.query,
@@ -59,7 +59,25 @@ class Swagger {
 						return res.status(500).send({error: container});
 					}*/
 
-					swaggerJson.paths[routePath][routeMethod].handler(input, res);
+					const subject = swaggerJson.paths[routePath][routeMethod].handler(input, res);
+					if (typeof subject.then == 'function'){
+						let container, status;
+						try {
+							container = await subject;
+							status = 200;
+						}
+						catch (e) {
+							container = {
+								"name": "API_ERROR",
+								"env": input,
+								"point": req.url,
+								"stack": e.stack,
+								"message": e.message
+							}
+							status = 400;
+						}
+						res.status(status).send(container)
+					}
 				}
 
 				let optPath = routePath.split("?")[0];
