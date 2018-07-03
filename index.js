@@ -3,7 +3,8 @@ const express = require('express'),
 	util = require('util'),
 	extend = require('extend'),
 	Validator = require('jsonschema').Validator,
-	convert = require('./openApi.js');
+	convert = require('./openApi.js'),
+	__secret = Symbol('secret');
 
 class Swagger {
 	constructor() {
@@ -22,6 +23,10 @@ class Swagger {
 			return validation.errors[0].toString();
 		}
 		return null;
+	}
+
+	setSecret(secret){
+		this[__secret] = secret;
 	}
 
 	build(swaggerJson, apiHandlers) {
@@ -99,7 +104,7 @@ class Swagger {
 				}
 
 				if (secureArea) {
-					router[routeMethod](swaggerJson.basePath + optPath, jwt({secret: process.env.JWT_SECRET}), handler);
+					router[routeMethod](swaggerJson.basePath + optPath, jwt({secret: this[__secret]}), handler);
 				} else {
 					router[routeMethod](swaggerJson.basePath + optPath, handler);
 				}
