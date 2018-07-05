@@ -113,17 +113,21 @@ class Swagger {
 
 		router.use((err, req, res, next) => {
 			if (!err) return next();
-			if (err.name === 'UnauthorizedError') {
-				res.status(401).send({error: 'Invalid token'});
-			} else {
-				let container;
-				if (typeof err === 'string' || err instanceof String) {
-					container = err;
-				} else {
-					container = util.inspect(err, {showHidden: false, depth: 5, breakLength: Infinity});
-				}
-				res.status(500).send({error: container});
-			}
+			let input = {
+				headers: req.headers,
+				query: req.query,
+				body: req.body,
+				params: req.params,
+				user: req.user
+			};
+
+			res.status(400).send({
+				"name": "API_ERROR",
+				"env": input,
+				"point": req.url,
+				"stack": err.stack,
+				"message": err.message
+			});
 		});
 
 		return router;
