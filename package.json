@@ -1,6 +1,6 @@
 {
   "name": "swaggertoexpress",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "To map swagger json file with handlers",
   "main": "index.js",
   "scripts": {

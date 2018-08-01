@@ -25,7 +25,7 @@ class Swagger {
 		return null;
 	}
 
-	setSecret(secret){
+	setSecret(secret) {
 		this[__secret] = secret;
 	}
 
@@ -44,7 +44,7 @@ class Swagger {
 
 				const secureArea = jsonschema.properties.headers && jsonschema.properties.headers.properties && (jsonschema.properties.headers.properties.Authorization || jsonschema.properties.headers.properties.authorization);
 
-				let handler = async (req, res) => {
+				let handler = (req, res) => {
 					let input = {
 						headers: req.headers,
 						query: req.query,
@@ -53,36 +53,37 @@ class Swagger {
 						user: req.user
 					};
 
-					/*let err = Swagger.validate(req, jsonschema, routeMethod != 'get' && swaggerJson.definitions);
-					if (err) {
-						let container;
-						if (typeof err === 'string' || err instanceof String) {
-							container = err;
-						} else {
-							container = util.inspect(err, {showHidden: false, depth: 5, breakLength: Infinity});
-						}
-						return res.status(500).send({error: container});
-					}*/
-
-					const subject = swaggerJson.paths[routePath][routeMethod].handler(input, res);
-					if (typeof subject.then == 'function'){
-						let container, status;
-						try {
-							container = await subject;
-							status = 200;
-						}
-						catch (e) {
-							container = {
-								"name": "API_ERROR",
-								"env": input,
-								"point": req.url,
-								"stack": e.stack,
-								"message": e.message
+					const d = require('domain').create();
+					d.once('error', (err) => {
+						res.status(400).send({
+							"name": "API_ERROR",
+							"env": input,
+							"point": req.url,
+							"stack": err.stack,
+							"message": err.message
+						})
+					});
+					d.run(async () => {
+						const subject = swaggerJson.paths[routePath][routeMethod].handler(input, res);
+						if (typeof subject.then == 'function') {
+							let container, status;
+							try {
+								container = await subject;
+								status = 200;
 							}
-							status = 400;
+							catch (e) {
+								container = {
+									"name": "API_ERROR",
+									"env": input,
+									"point": req.url,
+									"stack": e.stack,
+									"message": e.message
+								}
+								status = 400;
+							}
+							res.status(status).send(container)
 						}
-						res.status(status).send(container)
-					}
+					})
 				}
 
 				let optPath = routePath.split("?")[0];
@@ -104,7 +105,7 @@ class Swagger {
 				}
 
 				if (secureArea) {
-					router[routeMethod](swaggerJson.basePath + optPath, jwt({secret: this[__secret]}), handler);
+					router[routeMethod](swaggerJson.basePath + optPath, jwt({ secret: this[__secret] }), handler);
 				} else {
 					router[routeMethod](swaggerJson.basePath + optPath, handler);
 				}
