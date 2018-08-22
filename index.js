@@ -1,16 +1,10 @@
 const express = require('express'),
 	jwt = require('express-jwt'),
-	util = require('util'),
-	extend = require('extend'),
 	Validator = require('jsonschema').Validator,
 	convert = require('./openApi.js'),
 	__secret = Symbol('secret');
 
 class Swagger {
-	constructor() {
-
-	}
-
 	static validate(input, model, schemas) {
 		let v = new Validator();
 		if (schemas) {
@@ -50,7 +44,8 @@ class Swagger {
 						query: req.query,
 						body: req.body,
 						params: req.params,
-						user: req.user
+						user: req.user,
+						files: req.files
 					};
 
 					const d = require('domain').create();
