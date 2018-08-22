@@ -65,8 +65,7 @@ class Swagger {
 							try {
 								container = await subject;
 								status = 200;
-							}
-							catch (e) {
+							} catch (e) {
 								container = {
 									"name": "API_ERROR",
 									"env": input,
