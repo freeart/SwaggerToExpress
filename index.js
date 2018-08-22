@@ -75,7 +75,9 @@ class Swagger {
 								}
 								status = 400;
 							}
-							res.status(status).send(container)
+							if (container !== false) {
+								res.status(status).send(container)
+							}
 						}
 					})
 				}
