@@ -1,8 +1,6 @@
 const express = require('express'),
-	jwt = require('express-jwt'),
 	Validator = require('jsonschema').Validator,
-	convert = require('./openApi.js'),
-	__secret = Symbol('secret');
+	convert = require('./openApi.js');
 
 class Swagger {
 	static validate(input, model, schemas) {
@@ -19,11 +17,7 @@ class Swagger {
 		return null;
 	}
 
-	setSecret(secret) {
-		this[__secret] = secret;
-	}
-
-	build(swaggerJson, apiHandlers) {
+	build(swaggerJson, apiHandlers, protect) {
 		const router = express.Router();
 
 		Object.keys(swaggerJson.paths).forEach((routePath) => {
@@ -100,8 +94,8 @@ class Swagger {
 					});
 				}
 
-				if (secureArea) {
-					router[routeMethod](swaggerJson.basePath + optPath, jwt({ secret: this[__secret] }), handler);
+				if (secureArea && protect) {
+					router[routeMethod](swaggerJson.basePath + optPath, protect, handler);
 				} else {
 					router[routeMethod](swaggerJson.basePath + optPath, handler);
 				}
