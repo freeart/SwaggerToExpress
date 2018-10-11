@@ -22,7 +22,7 @@ class Swagger {
 
 		Object.keys(swaggerJson.paths).forEach((routePath) => {
 			Object.keys(swaggerJson.paths[routePath]).forEach((routeMethod) => {
-				swaggerJson.paths[routePath][routeMethod].handler = apiHandlers[routePath][routeMethod];
+				swaggerJson.paths[routePath][routeMethod].handler = apiHandlers[swaggerJson.paths[routePath][routeMethod].operationId];
 
 				if (["post", "get", "put", "delete", "patch"].indexOf(routeMethod) == -1) {
 					throw Error("wrong map config");
@@ -34,12 +34,11 @@ class Swagger {
 
 				let handler = (req, res) => {
 					let input = {
-						headers: req.headers,
+						header: Object.assign(req.headers, { authorization: req.user }),
 						query: req.query,
 						body: req.body,
-						params: req.params,
-						user: req.user,
-						files: req.files
+						path: req.params,
+						formData: Object.assign(req.files || {}, req.body)
 					};
 
 					const d = require('domain').create();
@@ -53,25 +52,32 @@ class Swagger {
 						})
 					});
 					d.run(async () => {
-						const subject = swaggerJson.paths[routePath][routeMethod].handler(input, res);
-						if (typeof subject.then == 'function') {
-							let container, status;
-							try {
-								container = await subject;
-								status = 200;
-							} catch (e) {
-								container = {
-									"name": "API_ERROR",
-									"env": input,
-									"point": req.url,
-									"stack": e.stack,
-									"message": e.message
+						const args = [input, res];
+						try {
+							for (let parameter of swaggerJson.paths[routePath][routeMethod].parameters) {
+								if (parameter.required && parameter.in != "body" && !(parameter.name in input[parameter.in])) {
+									throw new Error(`${parameter.name} in ${parameter.in} is required`)
 								}
-								status = 400;
+								args.push(parameter.in == "body" ? input[parameter.in] : input[parameter.in][parameter.name])
 							}
-							if (container !== false) {
-								res.status(status).send(container)
+							const subject = swaggerJson.paths[routePath][routeMethod].handler.apply(swaggerJson.paths[routePath][routeMethod].handler, args)
+							if (subject && (typeof subject.then == 'function')) {
+								const container = await subject;
+
+								if (container !== false) {
+									res.status(200).send(container)
+								}
+							} else {
+								res.status(202).send()
 							}
+						} catch (e) {
+							res.status(400).send({
+								"name": "API_ERROR",
+								"env": input,
+								"point": req.url,
+								"stack": e.stack,
+								"message": e.message
+							})
 						}
 					})
 				}
