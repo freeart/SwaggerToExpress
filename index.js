@@ -45,7 +45,7 @@ class Swagger {
 					d.once('error', (err) => {
 						res.status(400).send({
 							"name": "API_ERROR",
-							"env": input,
+							...(!process.env.HIDE_ENV && {"env": input}),
 							"point": req.url,
 							"stack": err.stack,
 							"message": err.message
@@ -73,7 +73,7 @@ class Swagger {
 						} catch (e) {
 							res.status(400).send({
 								"name": "API_ERROR",
-								"env": input,
+								...(!process.env.HIDE_ENV && {"env": input}),
 								"point": req.url,
 								"stack": e.stack,
 								"message": e.message
@@ -120,7 +120,7 @@ class Swagger {
 
 			res.status(400).send({
 				"name": "API_ERROR",
-				"env": input,
+				...(!process.env.HIDE_ENV && {"env": input}),
 				"point": req.url,
 				"stack": err.stack,
 				"message": err.message
