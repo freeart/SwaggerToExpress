@@ -1,4 +1,5 @@
 const express = require('express'),
+	EventEmitter = require('events'),
 	Validator = require('jsonschema').Validator,
 	convert = require('./openApi.js');
 
@@ -19,6 +20,11 @@ class Swagger {
 
 	build(swaggerJson, apiHandlers, protect) {
 		const router = express.Router();
+
+		const eventEmitter = new EventEmitter();
+
+		router.on = (event, fn) => { eventEmitter.on(event, fn) };
+		router.emit = (event, msg) => { eventEmitter.emit(event, msg) };
 
 		Object.keys(swaggerJson.paths).forEach((routePath) => {
 			Object.keys(swaggerJson.paths[routePath]).forEach((routeMethod) => {
@@ -43,9 +49,16 @@ class Swagger {
 
 					const d = require('domain').create();
 					d.once('error', (err) => {
+						router.emit('error', {
+							"name": "API_ERROR",
+							"env": input,
+							"point": req.url,
+							"stack": err.stack,
+							"message": err.message
+						});
 						res.status(400).send({
 							"name": "API_ERROR",
-							...(!process.env.HIDE_ENV && {"env": input}),
+							...(!process.env.HIDE_ENV && { "env": input }),
 							"point": req.url,
 							"stack": err.stack,
 							"message": err.message
@@ -71,9 +84,16 @@ class Swagger {
 								res.status(202).send()
 							}
 						} catch (e) {
+							router.emit('error', {
+								"name": "API_ERROR",
+								"env": input,
+								"point": req.url,
+								"stack": e.stack,
+								"message": e.message
+							});
 							res.status(400).send({
 								"name": "API_ERROR",
-								...(!process.env.HIDE_ENV && {"env": input}),
+								...(!process.env.HIDE_ENV && { "env": input }),
 								"point": req.url,
 								"stack": e.stack,
 								"message": e.message
@@ -118,9 +138,17 @@ class Swagger {
 				user: req.user
 			};
 
+			router.emit('error', {
+				"name": "API_ERROR",
+				"env": input,
+				"point": req.url,
+				"stack": err.stack,
+				"message": err.message
+			});
+
 			res.status(400).send({
 				"name": "API_ERROR",
-				...(!process.env.HIDE_ENV && {"env": input}),
+				...(!process.env.HIDE_ENV && { "env": input }),
 				"point": req.url,
 				"stack": err.stack,
 				"message": err.message
