@@ -54,7 +54,8 @@ class Swagger {
 							"env": input,
 							"point": req.url,
 							"stack": err.stack,
-							"message": err.message
+							"message": err.message,
+							"operationId": swaggerJson.paths[routePath][routeMethod].operationId
 						});
 						res.status(400).send({
 							"name": "API_ERROR",
