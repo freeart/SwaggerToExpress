@@ -30,7 +30,9 @@ class Swagger {
 
 				let jsonschema = convert(swaggerJson.paths[routePath][routeMethod].parameters);
 
-				const secureArea = jsonschema.properties.headers && jsonschema.properties.headers.properties && (jsonschema.properties.headers.properties.Authorization || jsonschema.properties.headers.properties.authorization);
+				let secureArea = jsonschema.properties.headers && jsonschema.properties.headers.properties && (jsonschema.properties.headers.properties.Authorization || jsonschema.properties.headers.properties.authorization);
+				secureArea = secureArea || (jsonschema.properties.query && jsonschema.properties.query.properties && (jsonschema.properties.query.properties.Authorization || jsonschema.properties.query.properties.authorization));
+				secureArea = secureArea || (jsonschema.properties.path && jsonschema.properties.path.properties && (jsonschema.properties.path.properties.Authorization || jsonschema.properties.path.properties.authorization));
 
 				let handler = (req, res) => {
 					let input = {
