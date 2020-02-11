@@ -44,7 +44,7 @@ class Swagger {
 				
 				let handler = (req, res) => {
 					let input = {
-						header: Object.assign(req.headers, { authorization: req.user }),
+						header: Object.assign(req.headers, { authorization: req.user, token: req.headers.authorization }),
 						query: req.query,
 						body: req.body,
 						path: req.params,
