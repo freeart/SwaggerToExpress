@@ -26,6 +26,8 @@ class Swagger {
 		router.on = (event, fn) => { eventEmitter.on(event, fn) };
 		router.emit = (event, msg) => { eventEmitter.emit(event, msg) };
 
+		router.on("error", () => {}) // prevent an error with no listeners
+
 		Object.keys(swaggerJson.paths).forEach((routePath) => {
 			Object.keys(swaggerJson.paths[routePath]).forEach((routeMethod) => {
 				swaggerJson.paths[routePath][routeMethod].handler = apiHandlers[swaggerJson.paths[routePath][routeMethod].operationId];
